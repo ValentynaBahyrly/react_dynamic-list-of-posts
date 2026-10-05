@@ -1,4 +1,5 @@
 import React from 'react';
+import classNames from 'classnames';
 import { Post } from '../types/Post';
 
 export const PostsList: React.FC<{
@@ -30,7 +31,9 @@ export const PostsList: React.FC<{
               <button
                 type="button"
                 data-cy="PostButton"
-                className={`button is-link ${post.id === selectedPostId ? '' : 'is-light'}`}
+                className={classNames('button is-link', {
+                  'is-light': post.id !== selectedPostId,
+                })}
                 onClick={() => onSelectPost(post)}
               >
                 {post.id === selectedPostId ? 'Close' : 'Open'}

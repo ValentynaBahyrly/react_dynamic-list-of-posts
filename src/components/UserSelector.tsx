@@ -20,7 +20,7 @@ export const UserSelector: React.FC<{
         dropdownRef.current &&
         !dropdownRef.current.contains(event.target as Node)
       ) {
-        setIsOpen(false); // Згортаємо меню
+        setIsOpen(false);
       }
     };
 

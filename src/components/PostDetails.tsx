@@ -10,11 +10,13 @@ export const PostDetails: React.FC<{ post: Post }> = ({ post }) => {
   const [isCommentsLoading, setIsCommentsLoading] = useState(false);
   const [isCommentsError, setIsCommentsError] = useState(false);
   const [isFormaOpen, setIsFormaOpen] = useState(false);
+  const [isMutationError, setIsMutationError] = useState(false);
 
   useEffect(() => {
     setIsFormaOpen(false);
     setIsCommentsLoading(true);
     setIsCommentsError(false);
+    setIsMutationError(false);
 
     client
       .get<Comment[]>(`/comments?postId=${post.id}`)
@@ -31,101 +33,111 @@ export const PostDetails: React.FC<{ post: Post }> = ({ post }) => {
     const backupComments = [...comments];
 
     setComments(current => current.filter(comment => comment.id !== commentId));
-    setIsCommentsError(false);
+    setIsMutationError(false);
 
     client.delete(`/comments/${commentId}`).catch(() => {
       setComments(backupComments);
-      setIsCommentsError(true);
+      setIsMutationError(true);
     });
   };
 
   return (
     <div className="content" data-cy="PostDetails">
-      <div className="content" data-cy="PostDetails">
-        <div className="block">
-          <h2 data-cy="PostTitle">
-            #{post.id}: {post.title}
-          </h2>
+      <div className="block">
+        <h2 data-cy="PostTitle">
+          #{post.id}: {post.title}
+        </h2>
 
-          <p data-cy="PostBody">{post.body}</p>
-        </div>
+        <p data-cy="PostBody">{post.body}</p>
+      </div>
 
-        <div className="block">
-          {isCommentsLoading && <Loader />}
+      <div className="block">
+        {isCommentsLoading && <Loader />}
 
-          {!isCommentsLoading && (
-            <>
-              {isCommentsError && (
-                <div className="notification is-danger" data-cy="CommentsError">
-                  Something went wrong
-                </div>
-              )}
+        {!isCommentsLoading && (
+          <>
+            {isCommentsError && (
+              <div className="notification is-danger" data-cy="CommentsError">
+                Something went wrong
+              </div>
+            )}
 
-              {!isCommentsError && comments.length === 0 && (
-                <p className="title is-4" data-cy="NoCommentsMessage">
-                  No comments yet
-                </p>
-              )}
+            {!isCommentsError && comments.length === 0 && (
+              <p className="title is-4" data-cy="NoCommentsMessage">
+                No comments yet
+              </p>
+            )}
 
-              {!isCommentsError && comments.length > 0 && (
-                <>
-                  <p className="title is-4">Comments:</p>
+            {!isCommentsError && comments.length > 0 && (
+              <>
+                <p className="title is-4">Comments:</p>
 
-                  {comments.map(comment => (
-                    <article
-                      key={comment.id}
-                      className="message is-small"
-                      data-cy="Comment"
-                    >
-                      <div className="message-header">
-                        <a
-                          href={`mailto:${comment.email}`}
-                          data-cy="CommentAuthor"
-                        >
-                          {comment.name}
-                        </a>
-                        <button
-                          data-cy="CommentDelete"
-                          type="button"
-                          className="delete is-small"
-                          aria-label="delete"
-                          onClick={() => handleDeleteComment(comment.id)}
-                        >
-                          delete button
-                        </button>
-                      </div>
+                {isMutationError && (
+                  <div
+                    className="notification is-danger"
+                    data-cy="CommentDeleteError"
+                  >
+                    Unable to delete a comment
+                  </div>
+                )}
 
-                      <div className="message-body" data-cy="CommentBody">
-                        {comment.body}
-                      </div>
-                    </article>
-                  ))}
-                </>
-              )}
-            </>
-          )}
-          {!isCommentsLoading && !isCommentsError && (
-            <>
-              {!isFormaOpen ? (
-                <button
-                  data-cy="WriteCommentButton"
-                  type="button"
-                  className="button is-link"
-                  onClick={() => setIsFormaOpen(true)}
-                >
-                  Write a comment
-                </button>
-              ) : (
-                <NewCommentForm
-                  postId={post.id}
-                  onAddComment={newComment =>
-                    setComments(current => [...current, newComment])
-                  }
-                />
-              )}
-            </>
-          )}
-        </div>
+                {comments.map(comment => (
+                  <article
+                    key={comment.id}
+                    className="message is-small"
+                    data-cy="Comment"
+                  >
+                    <div className="message-header">
+                      <a
+                        href={`mailto:${comment.email}`}
+                        data-cy="CommentAuthor"
+                      >
+                        {comment.name}
+                      </a>
+                      <button
+                        data-cy="CommentDelete"
+                        type="button"
+                        className="delete is-small"
+                        aria-label="delete"
+                        onClick={() => handleDeleteComment(comment.id)}
+                      >
+                        delete button
+                      </button>
+                    </div>
+
+                    <div className="message-body" data-cy="CommentBody">
+                      {comment.body}
+                    </div>
+                  </article>
+                ))}
+              </>
+            )}
+          </>
+        )}
+        {!isCommentsLoading && !isCommentsError && (
+          <>
+            {!isFormaOpen ? (
+              <button
+                data-cy="WriteCommentButton"
+                type="button"
+                className="button is-link"
+                onClick={() => {
+                  setIsFormaOpen(true);
+                  setIsMutationError(false);
+                }}
+              >
+                Write a comment
+              </button>
+            ) : (
+              <NewCommentForm
+                postId={post.id}
+                onAddComment={newComment =>
+                  setComments(current => [...current, newComment])
+                }
+              />
+            )}
+          </>
+        )}
       </div>
     </div>
   );
