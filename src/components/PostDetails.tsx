@@ -4,6 +4,7 @@ import { NewCommentForm } from './NewCommentForm';
 import { Post } from '../types/Post';
 import { Comment } from '../types/Comment';
 import { client } from '../utils/fetchClient';
+import PropTypes from 'prop-types';
 
 export const PostDetails: React.FC<{ post: Post }> = ({ post }) => {
   const [comments, setComments] = useState<Comment[]>([]);
@@ -29,16 +30,18 @@ export const PostDetails: React.FC<{ post: Post }> = ({ post }) => {
       });
   }, [post.id]);
 
-  const handleDeleteComment = (commentId: number) => {
+  const handleDeleteComment = async (commentId: number) => {
     const backupComments = [...comments];
 
     setComments(current => current.filter(comment => comment.id !== commentId));
     setIsMutationError(false);
 
-    client.delete(`/comments/${commentId}`).catch(() => {
+    try {
+      await client.delete(`/comments/${commentId}`);
+    } catch {
       setComments(backupComments);
       setIsMutationError(true);
-    });
+    }
   };
 
   return (
@@ -141,4 +144,15 @@ export const PostDetails: React.FC<{ post: Post }> = ({ post }) => {
       </div>
     </div>
   );
+};
+
+PostDetails.propTypes = {
+  posts: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      userId: PropTypes.number.isRequired,
+      title: PropTypes.string.isRequired,
+      body: PropTypes.string.isRequired,
+    }).isRequired,
+  ).isRequired,
 };

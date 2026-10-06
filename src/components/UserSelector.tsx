@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { User } from '../types/User';
+import PropTypes from 'prop-types';
+import classNames from 'classnames';
 
 export const UserSelector: React.FC<{
   users: User[];
@@ -35,7 +37,7 @@ export const UserSelector: React.FC<{
     <div
       ref={dropdownRef}
       data-cy="UserSelector"
-      className={`dropdown ${isOpen ? 'is-active' : ''}`}
+      className={classNames('dropdown', { 'is-active': isOpen })}
     >
       <div className="dropdown-trigger">
         <button
@@ -59,7 +61,9 @@ export const UserSelector: React.FC<{
             <a
               key={user.id}
               href={`#user-${user.id}`}
-              className={`dropdown-item ${user.id === selectedUserId ? 'is-active' : ''}`}
+              className={classNames('dropdown-item', {
+                'is-active': user.id === selectedUserId,
+              })}
               onClick={event => {
                 event.preventDefault();
                 onSelect(user.id);
@@ -73,4 +77,18 @@ export const UserSelector: React.FC<{
       </div>
     </div>
   );
+};
+
+UserSelector.propTypes = {
+  users: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.number.isRequired,
+      name: PropTypes.string.isRequired,
+      email: PropTypes.string.isRequired,
+      phone: PropTypes.string.isRequired,
+    }).isRequired,
+  ).isRequired,
+
+  selectedUserId: PropTypes.number,
+  onSelect: PropTypes.func.isRequired,
 };

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { client } from '../utils/fetchClient';
 import { Comment } from '../types/Comment';
 import classNames from 'classnames';
+import PropTypes from 'prop-types';
 
 export const NewCommentForm: React.FC<{
   postId: number;
@@ -42,7 +43,7 @@ export const NewCommentForm: React.FC<{
     });
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     const isNameInvalid = !formValues.name.trim();
@@ -73,26 +74,25 @@ export const NewCommentForm: React.FC<{
       body: formValues.body.trim(),
     };
 
-    client
-      .post<Comment>(`/comments`, CommentData)
-      .then(newComment => {
-        onAddComment(newComment);
-        setFormValues({
-          name: formValues.name,
-          email: formValues.email,
-          body: '',
-        });
-        setStatus({
-          isLoading: false,
-          isSubmitError: false,
-        });
-      })
-      .catch(() => {
-        setStatus({
-          isLoading: false,
-          isSubmitError: true,
-        });
+    try {
+      const newComment = await client.post<Comment>(`/comments`, CommentData);
+
+      onAddComment(newComment);
+      setFormValues({
+        name: formValues.name,
+        email: formValues.email,
+        body: '',
       });
+      setStatus({
+        isLoading: false,
+        isSubmitError: false,
+      });
+    } catch {
+      setStatus({
+        isLoading: false,
+        isSubmitError: true,
+      });
+    }
   };
 
   return (
@@ -234,4 +234,9 @@ export const NewCommentForm: React.FC<{
       </div>
     </form>
   );
+};
+
+NewCommentForm.propTypes = {
+  postId: PropTypes.number.isRequired,
+  onAddComment: PropTypes.func.isRequired,
 };
